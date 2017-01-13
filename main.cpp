@@ -3,19 +3,20 @@
 #include <time.h>
 using namespace std;
 
-#define MAX_LINII 24;
-#define MAX_COLOANE 30;
+#define MAX_LINII 24
+#define MAX_COLOANE 30
 
 struct casuta
 {
-    char val;
+    int val;
     bool buton;
     bool flag;
 };
 
 struct nod
 {
-    casuta *val;
+    int i;
+    int j;
     nod *urm;
 };
 void generareHarta(int nr_mine, int nr_linii, int nr_coloane, casuta harta[MAX_LINII][MAX_COLOANE])
@@ -26,26 +27,112 @@ void generareHarta(int nr_mine, int nr_linii, int nr_coloane, casuta harta[MAX_L
     for(int i=0;i<nr_linii;i++)
         for(int j=0;j<nr_coloane;j++)
         {
-            harta[i][j].val='0';
+            harta[i][j].val = 0;
             harta[i][j].buton=true;
             harta[i][j].flag=true;
             nod *a= new nod;
-            a->val=&harta[i][j];
+            a->i=i;
+            a->j=j;
             a->urm = NULL;
             ultim->urm=a;
             ultim=ultim->urm;
         }
     int n = nr_linii * nr_coloane;
-    //rand()%n + 1;
+    while(nr_mine>0)
+    {
+        int index = rand()%n + 1;
+        nod *it = lista;
+        nod *it_old;
+        while(index>0)
+        {
+            it_old = it;
+            it = it->urm;
+            index--;
+        }
+        harta[it->i][it->j].val = 9;
+        if(it->i>0 && it->j>0 && harta[it->i-1][it->j-1].val != 9)
+            harta[it->i-1][it->j-1].val++;
+        if(it->i>0 && harta[it->i-1][it->j].val != 9)
+            harta[it->i-1][it->j].val++;
+        if(it->i>0 && it->j<nr_coloane-1 && harta[it->i-1][it->j+1].val != 9)
+            harta[it->i-1][it->j+1].val++;
+        if(it->j<nr_coloane-1 && harta[it->i][it->j+1].val != 9)
+            harta[it->i][it->j+1].val++;
+        if(it->i<nr_linii-1 && it->j<nr_coloane-1 && harta[it->i+1][it->j+1].val != 9)
+            harta[it->i+1][it->j+1].val++;
+        if(it->i<nr_linii-1 && harta[it->i+1][it->j].val != 9)
+            harta[it->i+1][it->j].val++;
+        if(it->i<nr_linii-1 && it->j>0 && harta[it->i+1][it->j-1].val != 9)
+            harta[it->i+1][it->j-1].val++;
+        if(it->j>0 && harta[it->i][it->j-1].val != 9)
+            harta[it->i][it->j-1].val++;
 
+        it_old->urm = it->urm;
+        it->urm = NULL;
+        delete it;
+        n--;
+        nr_mine--;
+    }
 
+}
+
+void afisareHarta(int nr_linii, int nr_coloane, casuta harta[MAX_LINII][MAX_COLOANE])
+{
+    int k = 0;
+
+	cout << "      ";
+	for (int j = 0; j < nr_coloane; j++)
+	{
+		if(j+1 > 9)
+			cout << " " << j + 1 << " ";
+		else
+			cout << " " << j + 1 << "  ";
+	}
+	cout << endl;
+
+	for (int i = 0; i < nr_linii*2; i++)
+	{
+		if (i % 2 == 0)
+		{
+			cout << "     ";
+			for (int j = 0; j < nr_coloane; j++)
+				cout << "____";
+		}
+		else
+		{
+			if (k + 1 > 9)
+				cout << k + 1 <<"   |";
+			else cout << k + 1 << "    |";
+
+			for (int j = 0; j < nr_coloane; j++)
+			{
+				if (!harta[k][j].buton)
+				{
+					if (harta[k][j].val == 9) cout << " Q |";
+					else if (harta[k][j].val == 0) cout << "   |";
+					else cout << " " << harta[k][j].val << " |";
+				}
+				else {
+					cout << (char)178<< (char)178<< (char)178<< "|";
+				}
+			}
+			k++;
+		}
+		cout << endl;
+	}
+
+	cout << "     ";
+	for (int j = 0; j < nr_coloane; j++)
+		cout << "____";
+	cout << endl;
 }
 
 void incepeJoc(int nr_mine, int nr_linii, int nr_coloane)
 {
     casuta harta[MAX_LINII][MAX_COLOANE];
-    generareHarta(nr_mine,nr_linii,nr_coloane, harta)
-
+    generareHarta(nr_mine,nr_linii,nr_coloane, harta);
+    system("CLS");
+    afisareHarta(nr_linii,nr_coloane, harta);
 }
 
 
