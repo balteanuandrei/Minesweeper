@@ -29,7 +29,7 @@ void generareHarta(int nr_mine, int nr_linii, int nr_coloane, casuta harta[MAX_L
         {
             harta[i][j].val = 0;
             harta[i][j].buton=true;
-            harta[i][j].flag=true;
+            harta[i][j].flag=false;
             nod *a= new nod;
             a->i=i;
             a->j=j;
@@ -79,52 +79,121 @@ void generareHarta(int nr_mine, int nr_linii, int nr_coloane, casuta harta[MAX_L
 void afisareHarta(int nr_linii, int nr_coloane, casuta harta[MAX_LINII][MAX_COLOANE])
 {
     int k = 0;
-
-	cout << "      ";
+	cout<<"      ";
 	for (int j = 0; j < nr_coloane; j++)
 	{
 		if(j+1 > 9)
-			cout << " " << j + 1 << " ";
+			cout<<" "<<j + 1<<" ";
 		else
-			cout << " " << j + 1 << "  ";
+			cout<<" "<<j + 1<<"  ";
 	}
-	cout << endl;
+	cout<<endl;
 
 	for (int i = 0; i < nr_linii*2; i++)
 	{
 		if (i % 2 == 0)
 		{
-			cout << "     ";
-			for (int j = 0; j < nr_coloane; j++)
-				cout << "____";
+			cout<<"      ";
+			cout<<"___";
+			for (int j = 1; j < nr_coloane; j++)
+				cout<<"____";
 		}
 		else
 		{
+		    cout<<"  ";
 			if (k + 1 > 9)
-				cout << k + 1 <<"   |";
-			else cout << k + 1 << "    |";
+				cout<<k + 1<<" |";
+			else cout<<k + 1<< "  |";
 
 			for (int j = 0; j < nr_coloane; j++)
 			{
-				if (!harta[k][j].buton)
+				if(!harta[k][j].buton)
 				{
-					if (harta[k][j].val == 9) cout << " Q |";
-					else if (harta[k][j].val == 0) cout << "   |";
-					else cout << " " << harta[k][j].val << " |";
+					if (harta[k][j].val == 9) cout<<" Q |";
+					else if (harta[k][j].val == 0) cout<<"   |";
+					else if (harta[k][j].val == -1) cout<<" "<<(char)254<<" |";
+					else cout<<" "<<harta[k][j].val<<" |";
 				}
-				else {
-					cout << (char)178<< (char)178<< (char)178<< "|";
+				else if(harta[k][j].flag)
+				{
+				    cout<<(char)176<<"F"<<(char)176<<"|";
+				}
+				else
+				{
+					cout<<(char)178<<(char)178<<(char)178<< "|";
 				}
 			}
 			k++;
 		}
-		cout << endl;
+		cout<<endl;
 	}
 
-	cout << "     ";
-	for (int j = 0; j < nr_coloane; j++)
+	cout<<"      ";
+	cout << "___";
+	for (int j = 1; j < nr_coloane; j++)
 		cout << "____";
-	cout << endl;
+	cout<<endl;
+	cout<<endl;
+}
+
+bool clickButon(int nr_linii, int nr_coloane, casuta harta[MAX_LINII][MAX_COLOANE], int &clickuri)
+{
+    int x, y;
+    char c;
+    cout<<endl;
+    cout<<"Introduceti nr. liniei si coloanei unde doriti sa calcati sau sa puneti un steag\n";
+    cin>>x>>y;
+    bool coordGresite = true, flag;
+    while(coordGresite)
+    {
+        x--;
+        y--;
+        coordGresite = false;
+        flag = false;
+        if(x<0 || x>nr_linii-1 || y<0 || y>nr_coloane-1)
+        {
+            cout<<"Ati introdus coordonate gresite, mai incercati!\n";
+            cin>>x>>y;
+            coordGresite = true;
+            continue;
+        }
+        if(harta[x][y].flag)
+        {
+            flag = true;
+            cout<<"Butonul nu poate fi apasat, deoarece are steag deasupra!\n";
+            cout<<"Doriti sa inlaturati steagul de pe aceasta pozitie? (Y/N)\n";
+            cin>>c;
+            if(c=='y' || c=='Y')
+                harta[x][y].flag = false;
+            else
+            {
+                cout<<"Intoduceti alte coordonate atunci! \n";
+                cin>>x>>y;
+                coordGresite = true;
+                continue;
+            }
+        }
+        if(harta[x][y].buton == false)
+        {
+            cout<<"Butonul a fost deja apasat, incercati alte coordonate!\n";
+            cin>>x>>y;
+            coordGresite = true;
+        }
+    }
+    if (!flag)
+    {
+        cout<<"Doriti sa puneti un steag pe aceasta pozitie? (Y/N)\n";
+        cin>>c;
+        if(c=='y' || c=='Y')
+            harta[x][y].flag = true;
+        else
+        {
+            harta[x][y].buton = false;
+            clickuri++;
+
+        }
+    }
+    return false;
 }
 
 void incepeJoc(int nr_mine, int nr_linii, int nr_coloane)
@@ -132,7 +201,25 @@ void incepeJoc(int nr_mine, int nr_linii, int nr_coloane)
     casuta harta[MAX_LINII][MAX_COLOANE];
     generareHarta(nr_mine,nr_linii,nr_coloane, harta);
     system("CLS");
-    afisareHarta(nr_linii,nr_coloane, harta);
+
+
+    bool jocCastigat = false;
+    int nr_casute_apasate = 0;
+
+    while(!jocCastigat)
+    {
+        bool bomb;
+        system("CLS");
+        afisareHarta(nr_linii,nr_coloane, harta);
+        bomb = clickButon(nr_linii, nr_coloane, harta, nr_casute_apasate);
+        if(bomb)
+        {
+            system("CLS");
+            afisareHarta(nr_linii,nr_coloane, harta);
+            cout<<"BOOM!! Ai pierdut! \n";
+            break;
+        }
+    }
 }
 
 
