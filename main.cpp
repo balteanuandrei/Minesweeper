@@ -76,6 +76,13 @@ void generareHarta(int nr_mine, int nr_linii, int nr_coloane, casuta harta[MAX_L
 
 }
 
+void dezvaluieHarta(int nr_linii, int nr_coloane, casuta harta[MAX_LINII][MAX_COLOANE])
+{
+    for(int i=0;i<nr_linii;i++)
+        for(int j=0;j<nr_coloane;j++)
+            harta[i][j].buton = false;
+}
+
 void afisareHarta(int nr_linii, int nr_coloane, casuta harta[MAX_LINII][MAX_COLOANE])
 {
     int k = 0;
@@ -111,7 +118,7 @@ void afisareHarta(int nr_linii, int nr_coloane, casuta harta[MAX_LINII][MAX_COLO
 				{
 					if (harta[k][j].val == 9) cout<<" Q |";
 					else if (harta[k][j].val == 0) cout<<"   |";
-					else if (harta[k][j].val == -1) cout<<" "<<(char)254<<" |";
+					else if (harta[k][j].val == -1) cout<<" + |";
 					else cout<<" "<<harta[k][j].val<<" |";
 				}
 				else if(harta[k][j].flag)
@@ -134,6 +141,51 @@ void afisareHarta(int nr_linii, int nr_coloane, casuta harta[MAX_LINII][MAX_COLO
 		cout << "____";
 	cout<<endl;
 	cout<<endl;
+}
+
+
+void eliberareSpatii(int nr_linii, int nr_coloane, casuta harta[MAX_LINII][MAX_COLOANE], nod *coada, nod *ultim, int &clickuri)
+{
+    int x, y;
+    x = coada->i;
+    y = coada->j;
+    if(coada!=NULL)
+    {
+        if(coada->i>0 && coada->j>0 && harta[coada->i-1][coada->j-1].buton)
+        {
+            if(harta[coada->i-1][coada->j-1].val == 0)
+            {
+                ultim->urm = new nod;
+                ultim = ultim->urm;
+                ultim->i = coada->i-1;
+                ultim->j = coada->j-1;
+                ultim->urm = NULL;
+            }
+            harta[coada->i-1][coada->j-1].buton = false;
+            clickuri++;
+        }
+/*
+        if(it->i>0 && harta[it->i-1][it->j].val != 9)
+            harta[it->i-1][it->j].val++;
+        if(it->i>0 && it->j<nr_coloane-1 && harta[it->i-1][it->j+1].val != 9)
+            harta[it->i-1][it->j+1].val++;
+        if(it->j<nr_coloane-1 && harta[it->i][it->j+1].val != 9)
+            harta[it->i][it->j+1].val++;
+        if(it->i<nr_linii-1 && it->j<nr_coloane-1 && harta[it->i+1][it->j+1].val != 9)
+            harta[it->i+1][it->j+1].val++;
+        if(it->i<nr_linii-1 && harta[it->i+1][it->j].val != 9)
+            harta[it->i+1][it->j].val++;
+        if(it->i<nr_linii-1 && it->j>0 && harta[it->i+1][it->j-1].val != 9)
+            harta[it->i+1][it->j-1].val++;
+        if(it->j>0 && harta[it->i][it->j-1].val != 9)
+            harta[it->i][it->j-1].val++;
+            */
+        nod *gunoi = coada;
+        coada = coada->urm;
+        gunoi->urm = NULL;
+        delete gunoi;
+        eliberareSpatii(nr_linii,nr_coloane,harta,coada,ultim,clickuri);
+    }
 }
 
 bool clickButon(int nr_linii, int nr_coloane, casuta harta[MAX_LINII][MAX_COLOANE], int &clickuri)
@@ -190,7 +242,21 @@ bool clickButon(int nr_linii, int nr_coloane, casuta harta[MAX_LINII][MAX_COLOAN
         {
             harta[x][y].buton = false;
             clickuri++;
+            if(harta[x][y].val == 9)
+            {
+                harta[x][y].val = -1;
+                return true;
+            }
+            else if(harta[x][y].val == 0)
+            {
+                nod *coada = new nod;
+                nod *ultim = coada;
+                coada->i = x;
+                coada->j = y;
+                coada->urm = NULL;
+                eliberareSpatii(nr_linii,nr_coloane,harta,coada,ultim,clickuri);
 
+            }
         }
     }
     return false;
@@ -203,10 +269,10 @@ void incepeJoc(int nr_mine, int nr_linii, int nr_coloane)
     system("CLS");
 
 
-    bool jocCastigat = false;
+    bool finish = false;
     int nr_casute_apasate = 0;
 
-    while(!jocCastigat)
+    while(!finish)
     {
         bool bomb;
         system("CLS");
@@ -215,9 +281,20 @@ void incepeJoc(int nr_mine, int nr_linii, int nr_coloane)
         if(bomb)
         {
             system("CLS");
+            dezvaluieHarta(nr_linii,nr_coloane, harta);
             afisareHarta(nr_linii,nr_coloane, harta);
             cout<<"BOOM!! Ai pierdut! \n";
-            break;
+            finish = true;
+        }
+        else
+        {
+            if(nr_casute_apasate == nr_linii*nr_coloane - nr_mine)
+            {
+                system("CLS");
+                afisareHarta(nr_linii,nr_coloane, harta);
+                cout<<"Ai castigat! \n";
+                finish = true;
+            }
         }
     }
 }
